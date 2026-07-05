@@ -1,22 +1,22 @@
 package dev.yuhantama.library.controller;
 
-import java.util.List;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.*;
 
 import dev.yuhantama.library.entity.User;
 import dev.yuhantama.library.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/test")
 @RequiredArgsConstructor
 public class TestController {
-     private final UserRepository userRepository;
+
+    private final UserRepository userRepository;
 
     @PostMapping("/user")
     public User createUser(@RequestBody User user) {
@@ -26,5 +26,11 @@ public class TestController {
     @GetMapping("/users")
     public List<User> getAllUsers() {
         return userRepository.findAll();
+    }
+
+    // 👇 new secured test endpoint – returns the logged‑in user's email
+    @GetMapping("/me")
+    public String getCurrentUser(@AuthenticationPrincipal UserDetails userDetails) {
+        return "Authenticated as: " + userDetails.getUsername();
     }
 }

@@ -36,7 +36,10 @@ public class User {
 
     @Column(nullable = false)
     @NotBlank(message = "Password is required")
-    private String password;   // we'll encrypt this later!
+    private String password; // we'll encrypt this later!
+
+    @Column(nullable = false)
+    private String role = "USER"; // 👈 new field
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
