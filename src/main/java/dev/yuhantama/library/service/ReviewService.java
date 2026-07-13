@@ -18,6 +18,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+
 @Service
 @RequiredArgsConstructor
 public class ReviewService {
@@ -25,6 +29,17 @@ public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final BookRepository bookRepository;
     private final UserRepository userRepository;
+
+     public Page<ReviewResponseDTO> getReviewsByBook(Long bookId, Pageable pageable) {
+        if (!bookRepository.existsById(bookId)) {
+            throw new ResourceNotFoundException("Book not found with id: " + bookId);
+        }
+        Page<Review> reviewPage = reviewRepository.findByBookId(bookId, pageable); // we need to update repository
+        List<ReviewResponseDTO> content = reviewPage.getContent().stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+        return new PageImpl<>(content, pageable, reviewPage.getTotalElements());
+    }
 
     // Helper to get current logged-in user
     private User getCurrentUser() {

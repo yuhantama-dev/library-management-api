@@ -14,6 +14,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageImpl;
+
 @Service
 @RequiredArgsConstructor
 public class BookService {
@@ -21,10 +25,19 @@ public class BookService {
     private final BookRepository bookRepository;
     private final CategoryRepository categoryRepository;
 
+    public Page<BookResponseDTO> getAllBooks(Pageable pageable) {
+        Page<Book> bookPage = bookRepository.findAll(pageable);
+        List<BookResponseDTO> content = bookPage.getContent().stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+        return new PageImpl<>(content, pageable, bookPage.getTotalElements());
+    }
+
     @Transactional
     public BookResponseDTO createBook(BookRequestDTO request) {
         Category category = categoryRepository.findById(request.getCategoryId())
-                .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + request.getCategoryId()));
+                .orElseThrow(
+                        () -> new ResourceNotFoundException("Category not found with id: " + request.getCategoryId()));
 
         Book book = new Book();
         book.setTitle(request.getTitle());
@@ -55,7 +68,8 @@ public class BookService {
                 .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + id));
 
         Category category = categoryRepository.findById(request.getCategoryId())
-                .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + request.getCategoryId()));
+                .orElseThrow(
+                        () -> new ResourceNotFoundException("Category not found with id: " + request.getCategoryId()));
 
         book.setTitle(request.getTitle());
         book.setAuthor(request.getAuthor());
@@ -84,7 +98,6 @@ public class BookService {
                 book.getIsbn(),
                 book.getPublicationYear(),
                 book.getCategory() != null ? book.getCategory().getName() : null,
-                book.getCreatedAt()
-        );
+                book.getCreatedAt());
     }
 }
